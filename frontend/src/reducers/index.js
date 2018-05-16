@@ -11,7 +11,7 @@ function post(state = {} , action){
     switch(action.type){
         case ADD_POST:
             return{
-                
+
             }
     }
 }
@@ -20,4 +20,5 @@ function post(state = {} , action){
 
 export default combineReducers({
     // Add here all the reducers
+    
 })
