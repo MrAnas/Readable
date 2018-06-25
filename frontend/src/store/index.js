@@ -5,16 +5,10 @@ import axios from 'axios';
 import thunk from 'redux-thunk'
 import promise from 'redux-promise-middleware'
 
-export const initalState = {
-    posts: [],
-    categories: [],
-    fetching: false
-}
 
 const middleaware = applyMiddleware(promise(),thunk);
 const store = createStore(
     RootReducer,
-    initalState,
     middleaware
 )
 // store.dispatch({

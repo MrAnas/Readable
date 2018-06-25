@@ -1,0 +1,38 @@
+/**
+ * Header CSS
+ */
+ header {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 2;
+  }
+  
+  header ul.mui-list--inline {
+    margin-bottom: 0;
+  }
+  
+  header a {
+    color: white;
+    margin-right: 20px;
+  }
+  
+  header table {
+    width: 100%;
+  }
+  
+  
+  
+  /**
+   * Content CSS
+   */
+  #content-wrapper {
+    min-height: 100%;
+  
+    /* sticky footer */
+    box-sizing: border-box;
+    padding-bottom: 100px;
+    margin: 50px 150px -100px 150px;
+  }
+  

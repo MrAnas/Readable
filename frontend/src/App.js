@@ -1,64 +1,129 @@
 import React, { Component } from 'react';
-import {FETCH_POSTS} from './store/types'
-import {connect} from 'react-redux'
-import Header from './components/layout/header'
-import axios from 'axios'
-import {timestampToDate} from './util';
+import { Route, withRouter } from 'react-router-dom';
+import './App.css';
+import CategoryList from './views/categoryView.js';
+import AddNew from './views/addNew.js';
+import PostDetail from './views/postView.js';
+import MainList from './views/rootView.js';
+import * as BlogPostAPI from './APIs/BlogpostAPI';
+import TopBar from './views/topMenuBar';
+import { postAction, categoryAction, commentAction } from './actions'
+import { connect } from 'react-redux';
+import { callCommentsAPI } from './subComponents/component_list.js'
+
 
 class App extends Component {
 
-  componentDidMount(){
-    axios.defaults.headers.common['Authorization'] = "Anas";
-    this.props.fetchPost;
-  }
+    componentDidMount(){
 
-  render() {
-    let posts = this.props.posts;
+        const { addPost, selectCategory, location, addComments } = this.props;
+        let { existingComment } = this. props;
+
+        const paths = location.pathname.split('/').filter( p => p.length > 0 );
+
+        BlogPostAPI.getAllPosts().then((posts) => {
+
+            addPost({
+                activityType: 'post',
+                content: posts
+            });
+
+        });
+
+        BlogPostAPI.getCategories().then((categories) => {
+            categories.categories.map(cat => cat.text = cat.name);
+            categories.categories.map(cat => cat.value = cat.name);
+            selectCategory({
+                activityType:'categoryTypes',
+                content:  categories.categories
+            })
+
+        });
+
+        if(paths.length === 2){
+
+            console.log(paths);
+
+            //get current POST
+            addPost({
+                activityType: 'selectedId',
+                content: paths[1]
+            });
+
+            //get POST's comments
+            BlogPostAPI.getComments(paths[1]).then((newComments) => {
+
+                newComments.map(c => {
+                    existingComment = existingComment.filter(eComment => eComment.id !== c.id)
+                    existingComment.push(c);
+                });
+
+                addComments({
+                    activityType: 'comments',
+                    content: existingComment
+                });
+            });
+
+        }
+        else if(paths.length === 1 ){
+
+            selectCategory({
+                activityType:'selectedName',
+                content:  paths[0]
+            });
+
+        }
+
+    };
+
+    render() {
+
     return (
-      <div>
-      <div className="App container">
-      <Header/>
+        <div className="App">
 
-        
-      <div className="container">
-        <div className="card">
-          <div className="card-heading">
-            <h4 className="card-title">Posts List </h4>
-          </div>
-          <table className="table table-striped table-bordered">
-            <thead>
-              <th>#</th>
-              <th>Title</th>
-              <th>Author</th>
-              <th>View</th>  
-            </thead>
-            <tbody>
-              {this.props.posts.map((post,index)=>(
-                <tr>
-                    
-                <td>{index}</td>
-                <td>{post.title}</td>
-                <td>{timestampToDate(post.timestamp)}</td>
-                <td><button className="btn btn-primary">View</button></td>
-                </tr>
+            <header>
+                <TopBar/>
+            </header>
 
-              ))}
-            </tbody>
-          </table>
-          
+            <div id="content-wrapper" className="mui--text-center">
+                <Route exact path="/" render={( { history }) => (
+                    <MainList />
+                )}/>
+                <Route exact path="/addNew/addNew/addNew"  render={( { history } ) => (
+                    <AddNew />
+                )}/>
+
+                <Route exact path="/:category" render={( { history } ) => (
+                    <CategoryList />
+                )}/>
+
+                <Route exact path="/:category/:post_id" render={( { history } ) => (
+                    <PostDetail />
+                )}/>
+
+            </div>
+
         </div>
-      </div>
-      </div>
-      </div>
-    );
-  }
-}
-const mapStateToProps = (state) => ({
-  posts: state.posts
-})
 
-const mapDispatchToProps = (dispatch) => ({
-    fetchPost: dispatch({type:FETCH_POSTS ,payload: axios({method:'get',headers:{"Authorization":"Anas"},url:'http://localhost:3001/posts'})})
-})
- 
-export default connect(mapStateToProps,mapDispatchToProps)(App);
+
+    );
+    }
+}
+
+function mapStateToProps({blog,category, comment}){
+    return{
+        blog: blog,
+        category: category,
+        existingComment: comment.comments
+    }
+}
+
+function mapDispatchToProps(dispatch){
+    return {
+        addPost: (data) => dispatch( postAction(data) ),
+        selectCategory: (data) => dispatch( categoryAction(data) ),
+        addComments: (data) => dispatch( commentAction(data) )
+    }
+}
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(App));
